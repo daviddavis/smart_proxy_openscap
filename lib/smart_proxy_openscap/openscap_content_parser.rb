@@ -9,6 +9,11 @@ module Proxy::OpenSCAP
       @source = OpenSCAP::Source.new(:content => scap_content)
     end
 
+    def cleanup
+      @source.destroy if @source
+      OpenSCAP.oscap_cleanup
+    end
+
     def extract_policies
       policies = {}
       bench = benchmark_profiles

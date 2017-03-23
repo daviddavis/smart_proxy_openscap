@@ -94,12 +94,15 @@ module Proxy::OpenSCAP
     end
 
     post "/scap_content/policies" do
+      content_parser = create_content_parser
       begin
-        Proxy::OpenSCAP::ContentParser.new(request.body.string).extract_policies
+        content_parser.extract_policies
       rescue *HTTP_ERRORS => e
         log_halt 500, e.message
       rescue StandardError => e
         log_halt 500, "Error occurred: #{e.message}"
+      ensure
+        content_parser.cleanup
       end
     end
 
@@ -114,13 +117,20 @@ module Proxy::OpenSCAP
     end
 
     post "/scap_content/guide/:policy" do
+      content_parser = create_content_parser
       begin
-        Proxy::OpenSCAP::ContentParser.new(request.body.string).guide(params[:policy])
+        content_parser.guide(params[:policy])
       rescue *HTTP_ERRORS => e
         log_halt 500, e.message
       rescue StandardError => e
         log_halt 500, "Error occurred: #{e.message}"
+      ensure
+        content_parser.cleanup
       end
+    end
+
+    def create_content_parser
+      Proxy::OpenSCAP::ContentParser.new(request.body.string)
     end
   end
 end
